@@ -1,0 +1,15 @@
+Correlated Topic Model - Collapsed Variational Bayes
+====================================================
+
+Authors: 
+Arun Tejasvi Chaganty <arunchaganty@gmail.com>
+Kirtika Ruchandani <kirtibr@gmail.com>
+
+This is an implementation of the Correlated Topic Model proposed by Blei, et. al[1] using the Collapsed Variational Bayes approach. 
+
+Project initiated under the Natural Language Processing course at IIT Madras.
+
+Developed under the New BSD License.
+
+[1]: A Correlated Topic Model of Science
+

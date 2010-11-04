@@ -1,0 +1,10 @@
+# Intermediate output
+bin/*
+obj/*
+*.o
+doc/html/*
+
+# Editor Tempfiles
+*.swp
+*.swo
+*~
