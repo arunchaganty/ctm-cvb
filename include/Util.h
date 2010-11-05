@@ -13,7 +13,7 @@ using namespace std;
 
 namespace ctm 
 {
-  bool fileExists( string filename );
+  bool file_exists( string filename );
 
 
 };

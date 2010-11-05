@@ -12,6 +12,7 @@ using namespace std;
 
 #include "ctm.h"
 #include "Util.h"
+#include "ctm-data.h"
 
 using namespace ctm;
 
@@ -48,14 +49,17 @@ int main( int argc, char* argv[] )
     string settings_path = argv[3];
     string output_dir = argv[4];
 
-    if( !fileExists( corpus_path ) )
+    if( !file_exists( corpus_path ) )
     {
       cerr << "Path does not exist at: " << corpus_path << endl;
     }
-    if( !fileExists( settings_path ) )
+    if( !file_exists( settings_path ) )
     {
       cerr << "Path does not exist at: " << settings_path << endl;
     }
+
+    // Load corpus
+    Corpus corpus = Corpus::construct( corpus_path );
 
   }
   else if( argc == 5 && strcmp( argv[1], "inf" ) == 0 )
@@ -63,10 +67,11 @@ int main( int argc, char* argv[] )
     string model_dir = argv[2];
     string corpus_path = argv[3];
 
-    if( !fileExists( corpus_path ) )
+    if( !file_exists( corpus_path ) )
     {
       cerr << "Path does not exist at: " << corpus_path << endl;
     }
+    Corpus corpus = Corpus::construct( corpus_path );
 
   }
   else

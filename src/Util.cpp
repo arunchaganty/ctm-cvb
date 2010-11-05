@@ -9,7 +9,7 @@
 
 namespace ctm 
 {
-  bool fileExists( string filename )
+  bool file_exists( string filename )
   {
     struct stat st;
 

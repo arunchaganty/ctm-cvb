@@ -17,7 +17,7 @@ CFLAGS +=
 LDFLAGS += 
 
 LIB_OBJS=
-BIN_OBJS=obj/main.o obj/Util.o
+BIN_OBJS=obj/main.o obj/Util.o obj/ctm-data.o
 OBJS=$(LIB_OBJS) $(BIN_OBJS)
 
 all: $(TARGETS)
