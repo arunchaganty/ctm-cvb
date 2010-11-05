@@ -11,6 +11,7 @@
 using namespace std;
 
 #include "ctm.h"
+#include "Util.h"
 
 using namespace ctm;
 
@@ -43,9 +44,30 @@ int main( int argc, char* argv[] )
   }
   else if( argc == 5 && strcmp( argv[1], "est" ) == 0 )
   {
+    string corpus_path = argv[2];
+    string settings_path = argv[3];
+    string output_dir = argv[4];
+
+    if( !fileExists( corpus_path ) )
+    {
+      cerr << "Path does not exist at: " << corpus_path << endl;
+    }
+    if( !fileExists( settings_path ) )
+    {
+      cerr << "Path does not exist at: " << settings_path << endl;
+    }
+
   }
   else if( argc == 5 && strcmp( argv[1], "inf" ) == 0 )
   {
+    string model_dir = argv[2];
+    string corpus_path = argv[3];
+
+    if( !fileExists( corpus_path ) )
+    {
+      cerr << "Path does not exist at: " << corpus_path << endl;
+    }
+
   }
   else
   {
