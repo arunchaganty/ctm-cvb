@@ -7,7 +7,7 @@ ROOTDIR=./
 include Makefile.inc
 
 TARGETS=bin/ctm
-TESTS = tests/read_corpus
+TESTS = tests/read_corpus tests/log tests/settings
 
 PRJNAME=ctm
 VERSION=0.01
@@ -17,11 +17,15 @@ DISTFILES=$(TARGETS) tests/ doc/ README
 CFLAGS += 
 LDFLAGS += 
 
-LIB_OBJS=obj/util.o obj/ctm-data.o
+LIB_OBJS=obj/util.o obj/ctm-data.o \
+		 obj/InferenceEngine.o obj/CollapsedBayesEngine.o
+
 BIN_OBJS=obj/main.o
 OBJS=$(LIB_OBJS) $(BIN_OBJS)
 
-all: $(TARGETS)
+all: targets tests
+
+targets: $(TARGETS) 
 
 tests: ${TESTS}
 
