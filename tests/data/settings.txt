@@ -1,0 +1,7 @@
+em_max_iter 1000
+var_max_iter 20
+cg_max_iter -1
+em_convergence 1e-2
+var_convergence 1e-3
+cg_convergence 1e-3
+lag 10

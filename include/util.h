@@ -10,11 +10,17 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cmath>
+
+#define EPSILON 1e-6;
 
 using namespace std;
 
 bool file_exists( string filename );
 bool file_equal( string filename1, string filename2 );
+
+bool double_equal( double v1, double v2 );
+bool float_equal( float v1, float v2 );
 
 class Log
 {

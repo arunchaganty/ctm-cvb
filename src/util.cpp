@@ -68,6 +68,18 @@ bool file_equal( string filename1, string filename2 )
     return true;
 }
 
+// FP Comparison
+bool double_equal( double v1, double v2 )
+{
+    return fabs( v2 - v1 ) <= fabs( v1 ) * EPSILON;
+}
+
+bool float_equal( float v1, float v2 )
+{
+    return fabs( v2 - v1 ) <= fabs( v1 ) * EPSILON;
+}
+
+
 // Log Implementation
 
 Log::Log( ostream& stream, Level level )
