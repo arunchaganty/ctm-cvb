@@ -2,7 +2,7 @@
 
 # put common definitions in here
 CC		 = g++
-DEBUG    = -O0 -ggdb -pg
+DEBUG    = -O0 -g
 CFLAGS	 = $(DEBUG) -Wall -I$(ROOTDIR)include/ 
 CXXFLAGS = $(CFLAGS)
 LDFLAGS	 = -g
