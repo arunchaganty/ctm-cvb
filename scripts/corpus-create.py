@@ -19,11 +19,13 @@ options = {
     "lemmatise" : False,     
     "threshold" : False,     
 }
-alpha = "abcdefghijklmnopqrstuvwxyz'- "
+alpha = "abcdefghijklmnopqrstuvwxyz"
+bridge = "'- "
 
 def construct_dictionary( files ):
     global options
     global alpha
+    global bridge
 
     lemmatiser = nltk.WordNetLemmatizer()
     stops = nltk.corpus.stopwords.words( LANG )
@@ -34,8 +36,10 @@ def construct_dictionary( files ):
     for fname in files:
         with open(fname, "r") as f:
             for line in f:
-                words = filter( lambda c: c in alpha, line.lower() ).split()
+                words = filter( lambda c: c in alpha + bridge, line.lower() ).split()
                 for w in words:
+                    # Hack for single-letter words like ' or -
+                    if len(w) == 1 and w[0] in bridge: continue 
                     if options[ "stopwords" ] and w in stops: continue
                     if options[ "lemmatise" ]: w = lemmatiser.lemmatize( w )
                     # increment dictionary counts
@@ -58,6 +62,7 @@ def construct_dictionary( files ):
 def find_counts( files, dictionary ):
     global options 
     global alpha 
+    global bridge
 
     lemmatiser = nltk.WordNetLemmatizer()
     stops = nltk.corpus.stopwords.words( LANG )
@@ -69,9 +74,11 @@ def find_counts( files, dictionary ):
 
         with open(fname, "r") as f:
             for line in f:
-                words = filter( lambda c: c in alpha, line.lower() ).split()
+                words = filter( lambda c: c in alpha + bridge, line.lower() ).split()
 
                 for w in words:
+                    # Hack for single-letter words like ' or -
+                    if len(w) == 1 and w[0] in bridge: continue 
                     if options[ "stopwords" ] and w in stops: continue
                     if options[ "lemmatise" ]: w = lemmatiser.lemmatize( w )
 
