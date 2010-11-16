@@ -61,3 +61,46 @@ bool file_equal( string filename1, string filename2 )
     return true;
 }
 
+// Log Implementation
+
+Log::Log( fstream& stream, Level level )
+    : stream( stream ), level( level )
+{
+}
+
+Log::~Log()
+{
+    stream.close();
+}
+
+Log Log::create( string filename, Level level )
+{
+    fstream stream( filename.c_str(), fstream::out );
+
+    return Log( stream, level );
+}
+
+void Log::info( const string& msg )
+{
+    if( level <= INFO )
+    {
+        stream << "[INFO]: " << msg << endl;
+    }
+}
+
+void Log::debug( const string& msg )
+{
+    if( level <= DEBUG )
+    {
+        stream << "[DEBUG]: " << msg << endl;
+    }
+}
+
+void Log::error( const string& msg )
+{
+    if( level <= ERROR )
+    {
+        stream << "[ERROR]: " << msg << endl;
+    }
+}
+
