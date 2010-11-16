@@ -15,6 +15,8 @@ using namespace std;
 #include "ctm-data.h"
 #include "global.h"
 
+#include "CollapsedBayesEngine.h"
+
 using namespace ctm;
 
 extern int optind, opterr;
@@ -23,16 +25,16 @@ void print_help( ostream& stream, int argc, char* argv[] )
 {
   stream << "Correlated Topic Model - Collapsed Variational Bayes" << endl;
   stream << "----------------------------------------------------" << endl;
-  stream << "ctm est <corpus-file> <settings-file> <output-dir>" << endl;
-  stream << "ctm inf <model-dir> <corpus-file> " << endl;
+  stream << "ctm est <settings-file> <corpus-file> <output-dir>" << endl;
+  stream << "ctm inf <settings-file> <corpus-file> <model-dir> " << endl;
   stream << "ctm [-h]" << endl;
   stream << "----------------------------------------------------" << endl;
 }
 
 /**
 * ctm is invoked:
-* ctm est <corpus-file> <settings-file> <output-dir>  
-* ctm inf <model-dir> <corpus-file> 
+* ctm est <settings-file> <corpus-file> <output-dir>  
+* ctm inf <settings-file> <corpus-file> <model-dir> 
 * ctm [-h]
 *
 */
@@ -47,8 +49,8 @@ int main( int argc, char* argv[] )
   }
   else if( argc == 5 && strcmp( argv[1], "est" ) == 0 )
   {
-    string corpus_path = argv[2];
-    string settings_path = argv[3];
+    string settings_path = argv[2];
+    string corpus_path = argv[3];
     string output_dir = argv[4];
 
     if( !file_exists( corpus_path ) )
@@ -62,19 +64,31 @@ int main( int argc, char* argv[] )
 
     // Load corpus
     Corpus corpus = Corpus::construct( corpus_path );
+    InferenceOptions options = InferenceOptions::parse( settings_path );
+    CollapsedBayesEngine engine( options );
 
+    engine.train( corpus );
   }
-  else if( argc == 4 && strcmp( argv[1], "inf" ) == 0 )
+  else if( argc == 5 && strcmp( argv[1], "inf" ) == 0 )
   {
-    string model_dir = argv[2];
+    string settings_path = argv[2];
     string corpus_path = argv[3];
+    string model_dir = argv[4];
 
     if( !file_exists( corpus_path ) )
     {
       cerr << "Path does not exist at: " << corpus_path << endl;
     }
-    Corpus corpus = Corpus::construct( corpus_path );
+    if( !file_exists( settings_path ) )
+    {
+      cerr << "Path does not exist at: " << settings_path << endl;
+    }
 
+    Corpus corpus = Corpus::construct( corpus_path );
+    InferenceOptions options = InferenceOptions::parse( settings_path );
+    CollapsedBayesEngine engine( options );
+
+    engine.infer( corpus );
   }
   else
   {

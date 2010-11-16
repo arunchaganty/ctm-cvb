@@ -79,7 +79,7 @@ namespace ctm
     void InferenceEngine::train( Corpus data )
     {
         int i;
-        double likelihood;
+        double log_likelihood;
 
         i = 0;
         do
@@ -87,11 +87,11 @@ namespace ctm
             g_Log->info( "EM Iteration %d", i );
 
             // Estimate parameters 
-            likelihood = infer( data );
+            log_likelihood = infer( data );
 
             // Estimate model
             estimate( data );
         } while( ( options.em_max_iter < ++i ) && 
-                ( likelihood < options.em_convergence ) );
+                ( log_likelihood < options.em_convergence ) );
     }
 };
