@@ -8,3 +8,11 @@ doc/html/*
 *.swp
 *.swo
 *~
+
+# Others
+tags
+cscope.out
+
+# Compiled binaries
+tests/*[^.cpp]
+
