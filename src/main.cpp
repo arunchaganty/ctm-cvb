@@ -11,7 +11,7 @@
 using namespace std;
 
 #include "ctm.h"
-#include "Util.h"
+#include "util.h"
 #include "ctm-data.h"
 
 using namespace ctm;
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
     Corpus corpus = Corpus::construct( corpus_path );
 
   }
-  else if( argc == 5 && strcmp( argv[1], "inf" ) == 0 )
+  else if( argc == 4 && strcmp( argv[1], "inf" ) == 0 )
   {
     string model_dir = argv[2];
     string corpus_path = argv[3];
