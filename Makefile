@@ -16,11 +16,13 @@ DISTFILES=$(TARGETS) tests/ doc/ README
 CFLAGS += 
 LDFLAGS += 
 
-LIB_OBJS=
-BIN_OBJS=obj/main.o obj/Util.o obj/ctm-data.o
+LIB_OBJS=obj/util.o obj/ctm-data.o
+BIN_OBJS=obj/main.o
 OBJS=$(LIB_OBJS) $(BIN_OBJS)
 
 all: $(TARGETS)
+
+tests: ${TESTS}
 
 bin/ctm: ${OBJS}
 	if [ ! -e bin ]; then mkdir bin; fi;

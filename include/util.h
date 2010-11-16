@@ -11,11 +11,7 @@
 
 using namespace std;
 
-namespace ctm 
-{
-  bool file_exists( string filename );
-
-
-};
+bool file_exists( string filename );
+bool file_equal( string filename1, string filename2 );
 
 #endif // UTIL_H
