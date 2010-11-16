@@ -13,6 +13,7 @@ using namespace std;
 #include "ctm.h"
 #include "util.h"
 #include "ctm-data.h"
+#include "global.h"
 
 using namespace ctm;
 
@@ -38,6 +39,7 @@ void print_help( ostream& stream, int argc, char* argv[] )
 int main( int argc, char* argv[] )
 {
   // Parse command line arguments
+  g_Log = &Log::create( "log.txt", Log::INFO );
   
   if( argc == 1 || ( argc == 2 && strcmp( argv[1], "-h" ) == 0 ) )
   {

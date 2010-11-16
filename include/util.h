@@ -8,6 +8,7 @@
   #define UTIL_H
 
 #include <string>
+#include <iostream>
 #include <fstream>
 
 using namespace std;
@@ -17,28 +18,29 @@ bool file_equal( string filename1, string filename2 );
 
 class Log
 {
-    enum Level
-    {
-        INFO = 0,
-        DEBUG = 1,
-        ERROR = 2
-    };
-
     public:
-        Log( fstream& stream, Level level );
-        ~Log();
+        enum Level
+        {
+            DEBUG = 0,
+            INFO = 1,
+            ERROR = 2
+        };
 
-        static Log create( string filename, Level level );
+        static Log& create( string filename, Level level );
+        static Log& create( ostream& stream, Level level );
 
-        void info( const string& msg );
-        void debug( const string& msg );
-        void error( const string& msg );
+        void setLevel( Level level ); 
+        Level getLevel(); 
 
-    private:
-        fstream& stream;
+        void info( const char* msg, ...);
+        void debug( const char* msg, ...);
+        void error( const char* msg, ...);
+
+    protected:
+        Log( ostream& stream, Level level );
+        ostream* stream;
         Level level;
 };
 
-extern Log g_Log;
-
 #endif // UTIL_H
+
