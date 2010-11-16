@@ -22,6 +22,8 @@ namespace ctm
     int termCount;
 
     static Corpus construct( string filename );
+
+    void write( string filename );
   };
 
   struct Document

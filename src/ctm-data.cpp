@@ -9,10 +9,13 @@
 #include <string>
 #include <cassert>
 #include <cstring>
+
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 #include "ctm-data.h"
-#include "Util.h"
+#include "util.h"
 
 #define BUF_SIZE 50
 #define MAX(x,y) ( ((x) >= (y)) ? (x) : (y) )
@@ -54,6 +57,7 @@ namespace ctm
         length += count;
       }
       doc.length = length;
+      fscanf( file, "\n" );
 
       corpus.docs.push_back( doc );
     }
@@ -62,7 +66,26 @@ namespace ctm
     return corpus;
   }
 
+  void Corpus::write( string filename )
+  {
+    // Open file
+    fstream file ( filename.c_str(), fstream::out );
 
+    // For every document, a line
+    for( vector<Document>::iterator doc = docs.begin(); doc != docs.end(); doc++ )
+    {
+        file << doc->terms.size();
+        for( unsigned int i = 0; i < doc->terms.size(); i++ )
+        {
+            // M term1:count1 ... termM:countM
+            file << " " << doc->terms[ i ] << ":" << doc->counts[ i ];
+        }
+        file << endl;
+    }
+
+    file.close();
+
+  }
 
 };
 

@@ -7,6 +7,7 @@ ROOTDIR=./
 include Makefile.inc
 
 TARGETS=bin/ctm
+TESTS = tests/read_corpus
 
 PRJNAME=ctm
 VERSION=0.01
@@ -33,6 +34,12 @@ ${OBJS}: obj/%.o : src/%.cpp
 	if [ ! -e obj ]; then mkdir obj; fi;
 	$(CC) $(CFLAGS) -c $^ -o $@
 
+${TESTS}: tests/% : tests/%.cpp ${LIB_OBJS}
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+
+test: tests
+	./test.sh
+
 src-dist: 
 	rm -rf $(PRJNAME)-src-$(VERSION)
 	mkdir $(PRJNAME)-src-$(VERSION)
@@ -47,7 +54,7 @@ bin-dist: all
 	tar -czf $(PRJNAME)-$(VERSION).tar.gz $(PRJNAME)-$(VERSION)/
 	rm -r $(PRJNAME)-$(VERSION)
 
-.PHONY: clean doc 
+.PHONY: clean doc test
 
 doc: 
 	doxygen
@@ -57,3 +64,5 @@ clean:
 	rm -rf lib/*
 	rm -rf obj/*
 
+clean-tests:
+	rm -rf $(TESTS)
