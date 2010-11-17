@@ -31,7 +31,7 @@ namespace ctm
     class InferenceEngine
     {
         public:
-            InferenceEngine( InferenceOptions options );
+            InferenceEngine( InferenceOptions& options );
 
             // Load/Store in a file
             virtual void init( string filename ) = 0;
@@ -40,13 +40,13 @@ namespace ctm
             // Parse a single file
             
             // Returns likelihood
-            virtual double infer( Corpus data ) = 0;
-            virtual void estimate( Corpus data ) = 0;
+            virtual double infer( Corpus& data ) = 0;
+            virtual void estimate( Corpus& data ) = 0;
 
             // EM until change < eps
-            virtual void train( Corpus data );
+            virtual void train( Corpus& data );
 
-       private:
+        protected:
             InferenceOptions options;
     };
 };

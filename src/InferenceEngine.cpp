@@ -71,12 +71,12 @@ namespace ctm
         return options;
     }
     
-    InferenceEngine::InferenceEngine( InferenceOptions options )
+    InferenceEngine::InferenceEngine( InferenceOptions& options )
         : options( options)
     {
     }
 
-    void InferenceEngine::train( Corpus data )
+    void InferenceEngine::train( Corpus& data )
     {
         int i;
         double log_likelihood;
@@ -95,3 +95,4 @@ namespace ctm
                 ( log_likelihood < options.em_convergence ) );
     }
 };
+

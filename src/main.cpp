@@ -88,7 +88,7 @@ int main( int argc, char* argv[] )
     InferenceOptions options = InferenceOptions::parse( settings_path );
     CollapsedBayesEngine engine( options );
 
-    engine.infer( corpus );
+    engine.infer( corpus, NULL );
   }
   else
   {

@@ -16,46 +16,69 @@ namespace ctm
 {
     class CollapsedBayesEngine : public InferenceEngine
     {
+        /***
+         * Model hyperparameters learnt by maximisation
+         */
         struct Model
         {
-            struct SufficientStatistic
-            {
-                gsl_matrix* cov_ss;
-                gsl_matrix* mu_ss;
-                gsl_matrix* beta_ss;
-                double ndata;
-            };
+            gsl_vector* mu;
+            gsl_matrix* cov;
+            gsl_matrix* inv_cov;
 
             gsl_matrix* log_beta;
-            gsl_matrix* mu;
-            gsl_matrix* inv_cov;
-            gsl_matrix* cov;
+
+            double gamma;
             double log_det_inv_cov;
+
+            Model( int D, int K, int V );
+            ~Model();
+        };
+
+        /***
+         * Data collected in the 'expectation' step, to be used in the
+         * maximisation step.
+         */
+        struct CollectedData
+        {
+            // Expected counts
+            gsl_matrix* n_ij;
+            gsl_matrix* n_jk;
+            double ndata;
+
+            CollectedData( int D, int K, int V );
+            ~CollectedData();
         };
             
+        /***
+         * Variational parameters to be optimised in the expectation step
+         */
         struct Parameters
         {
+            // Stores \phi_{*kj}
             gsl_matrix* phi;
             gsl_matrix* log_phi;
-            double gamma;
+            
+            // Likelihood saved for optimisation purposes
             double lhood;
+
+            Parameters( int K, int V );
+            ~Parameters();
         };
 
     public:
-        CollapsedBayesEngine(InferenceOptions options);
+        CollapsedBayesEngine(InferenceOptions& options);
 
         // Load/Store in a file
         virtual void init( string filename );
         virtual void save( string filename );
 
         // Parse a single file
-        virtual double infer( Corpus data );
-        virtual void estimate( Corpus data );
+        virtual double infer( Corpus& data );
+        virtual double infer( Corpus& data, CollectedData* cd );
+        virtual void estimate( Corpus& data );
 
     protected:
-        Model model;
-        Model::SufficientStatistic ss;
-        InferenceOptions options;
+        Model* model;
     };
 };
 
