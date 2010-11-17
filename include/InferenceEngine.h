@@ -25,6 +25,8 @@ namespace ctm
         int cov_estimate;
         int lag;
 
+        long K; // Topics
+
         static InferenceOptions parse( string filename );
     };
 

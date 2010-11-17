@@ -19,7 +19,9 @@ namespace ctm
   struct Corpus 
   {
     vector<Document> docs;
-    int termCount;
+    int D;
+    int K;
+    int V;
 
     static Corpus construct( string filename );
 

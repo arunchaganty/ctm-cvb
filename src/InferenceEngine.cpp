@@ -67,6 +67,10 @@ namespace ctm
             {
                 options.lag = strtof( value.c_str(), NULL );
             }
+            else if( key == "topics" )
+            {
+                options.K = strtol( value.c_str(), NULL, 10 );
+            }
         }
         return options;
     }

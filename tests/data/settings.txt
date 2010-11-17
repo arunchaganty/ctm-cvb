@@ -5,3 +5,4 @@ em_convergence 1e-2
 var_convergence 1e-3
 cg_convergence 1e-3
 lag 10
+topics 50

@@ -28,6 +28,7 @@ int main()
     assert( double_equal( options.var_convergence, 0.001 ) );
     assert( double_equal( options.cg_convergence, 0.001 ) );
     assert( double_equal( options.lag, 10 ) );
+    assert( options.K == 50 );
 
     return 0;
 }

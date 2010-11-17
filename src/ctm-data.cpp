@@ -61,7 +61,8 @@ namespace ctm
 
       corpus.docs.push_back( doc );
     }
-    corpus.termCount = maxTerm + 1;
+    corpus.D = corpus.docs.size();
+    corpus.V = maxTerm + 1;
 
     return corpus;
   }
