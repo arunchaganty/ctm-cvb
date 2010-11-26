@@ -15,14 +15,14 @@ function phi = init_phi_unif( C, K, M, S, B, G, i )
 end;
 
 # Compute "better" expected topic assignments
-function [lhood, N_ij, N_jk] = expectation( C, K, M, S, B, G, bound, max_iter )
+function [EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bound, max_iter )
     lhood = 0;
     iter = 0;
 
     [D,V] = size( C );
     C2 = C.^2;
 
-    phi = init_phi_unif( C, K, M, S, B, G )
+    phi = init_phi_unif( C, K, M, S, B, G );
     do
         lhood_ = lhood;
 
@@ -45,27 +45,35 @@ function [lhood, N_ij, N_jk] = expectation( C, K, M, S, B, G, bound, max_iter )
 
             VN_ij( :, j ) = sum( VN, 2 );
             VN_jk( j, : ) = sum( VN, 1 );
+        end;
 
-            # Update (log_phi)
+        # Update (log_phi)
+        for j = [1:K];
+            EN = phi{ j } .* C;
+            VN = C2 .* (1 - phi{ j }) .* phi{ j };
+
             # log(phi_ijk) = \sum_j' S_jj' EN_ij' - S_jj n_ik ( 1 - 2\phi_ijk ) + M_j
-            phi_ = EN_ij * S( j, : ) - S( j, j ) .* ( C - 2 .* EN ) + M(j);
-            #              - log( \sum_k' B_jk' EN_jk' - B_jk n_ik \phi_ijk + (n_ik - 1)/2 ) 
-            #              + log( B_jk EN_jk - B_jk n_ik \phi_ijk _ (n_ik - 1)/2 )
-            B_jk_tmp = ( B(j,:) .* EN_jk(j,:) - repmat( B(j,:), D ) .* EN + (C - 1)/2 );
-            phi_ += -log( sum( B_jk_tmp ) );
+            phi_ = repmat( EN_ij * S( :, j ), 1, V ) + S( j, j ) .* ( C - 2 .* EN ) + repmat( M(j), D, V );
+            #              - log( \sum_k' B_jk' + EN_jk' - n_ik \phi_ijk + (n_ik - 1)/2 ) 
+            #              + log( B_jk + EN_jk - n_ik \phi_ijk _ (n_ik - 1)/2 )
+            B_j_tmp = repmat( sum( B(j,:) + EN_jk(j,:) ), D, V ) - EN + (C - 1)/2;
+            B_jk_tmp = repmat( B(j,:) + EN_jk(j,:), D, 1 ) - EN + (C - 1)/2;
+            phi_ += -log( B_j_tmp );
             phi_ += log( B_jk_tmp );
             #              + (\sum_k' VN_jk' - n_ik^2 (1-\phi_ijk) \phi_ijk )/2(\sum_k' B_jk' + EN_jk' - n_ik\phi_ijk + n_ik - 1 /2 )^2 
-            phi_ += sum( VN_jk(j,:) - VN ) ./ (2.*( sum( B_jk_tmp ) ).^2 );
-            phi_ -= ( VN_jk(j,:) - VN ) ./ (2.*( B_jk_tmp ).^2 );
+            V_j_tmp = repmat( sum( VN_jk(j,:) ), D, V ) - VN;
+            V_jk_tmp = repmat( VN_jk(j,:), D, 1 ) - VN;
+            phi_ +=  V_j_tmp ./ (2.*( B_j_tmp.^2 ));
+            phi_ -=  V_jk_tmp ./ (2.*( B_jk_tmp.^2 ));
 
             # Update
             phi{j} = phi_;
         end;
 
         # Flatten phi
-        phinorm = sparse( D * V, 1 );
+        phinorm = sparse( 1, D * V );
         for j = [1:length(phi)];
-            phinorm(j) = phi{j}(:);
+            phinorm(j,:) = phi{j}(:)';
         end;
         # Normalise across topics
         phinorm = logsum( phinorm, 1 );
@@ -75,7 +83,11 @@ function [lhood, N_ij, N_jk] = expectation( C, K, M, S, B, G, bound, max_iter )
         phi = cellfun( @(phi_j) exp( phi_j - phinorm ), phi, "UniformOutput", false );
 
         lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk );
+        iter
+        lhood
+        input "[Expectation] Continue";
+
         iter++;
-    while( lhood - lhood_ < bound && iter < max_iter );
+    until( abs(1 - lhood_/lhood) < bound && iter < max_iter );
 end;
 

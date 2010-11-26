@@ -25,7 +25,7 @@ function [L] = phi(S)
     K = sqrt( length( S ) );
     S = reshape( S, K, K );
 
-    L = sum( sum( (EN' * EN) .* log( S ) ) ) + sum( VN .* diag( 2 log( S ) ) );
+    L = sum( sum( (EN' * EN) .* log( S ) ) ) + sum( VN .* diag( 2 * log( S ) ) );
 end;
 
 function [r] = CEF( S )
