@@ -12,9 +12,11 @@ function [M, S, B, G] = init_model_params( C, K )
 
     # No correlation 
     # S_{jj'} = 1 [ Satisifies positive-semidefiniteness ]
-    S = ones( K, K );
+    S = eye( K, K );
 
-    B = ones( K, V ); # A pseudo-count of 1 each
+    # Random Initialise
+    B = rand( K, V ) + 0.01; # (let's not have zeros...)
+    B = B ./ (repmat( sum( B, 1 ), K, 1 ) );    # A pseudo-count of 1 each
 
     # G = \sum_j exp( M_j + 1/2 S_jj )
     G = K * exp( 1/2 );
@@ -38,16 +40,22 @@ function [M,S,B,G] = ctm( C, K, bounds, max_iter )
 
     lhood = 0;
     iter = 0;
+    [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, var_bound, var_max_iter );
     do
         lhood_ = lhood;
-        [EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, var_bound, var_max_iter );
         [M, S, B, G] = mlmaximisation( C, K, M, S, B, G, EN_ij, EN_jk, VN_ij, VN_jk, cov_bound, cov_max_iter );
-        lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk );
-        iter
-        lhood
-        input "[Main] Continue";
+
+#        M, S, B
+#        input "Continue";
+
+        [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, var_bound, var_max_iter );
+
+#        EN_ij, EN_jk, VN_ij, VN_jk
+#        input "Continue";
+
+        fflush(1);
         iter++;
-    until ( abs(1 - lhood_/lhood) > lhood_bound && iter > lhood_max_iter );
+    until ( abs(1 - lhood_/lhood) < lhood_bound || iter > lhood_max_iter );
     M, S, B, G
 end;
 
