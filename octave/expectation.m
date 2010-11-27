@@ -107,7 +107,7 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
 #        input "Continue";
 
         lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi );
-        P = perplexity( C, K, phi );
+        P = perplexity( C, B, K, phi );
         printf( "E(%d) = %f, %f\n", iter, P, lhood );
         fflush(1);
 
