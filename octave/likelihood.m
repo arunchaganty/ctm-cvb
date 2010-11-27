@@ -4,13 +4,6 @@
 # Computing likelihood
 #
 
-# Let zero values stay zero
-function M = safe_log( M )
-    nulls = M==0;
-    M = log( M );
-    M(nulls) = 0;
-end;
-
 # Compute the log-likelihood of the model
 function lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi )
     lhood = 0;

@@ -4,13 +4,6 @@
 # Computing perplexity
 #
 
-# Let zero values stay zero
-function M = safe_log( M )
-    nulls = M==0;
-    M = log( M );
-    M(nulls) = 0;
-end;
-
 # Compute the per-word perplexity of data
 function P = perplexity( C, K, phi )
     N = sum( sum( C ) );

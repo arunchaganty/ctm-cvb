@@ -16,7 +16,7 @@ function [M, S, B, G] = init_model_params( C, K )
 
     # Random Initialise
     B = rand( K, V ) + 0.01; # (let's not have zeros...)
-    B = B ./ (repmat( sum( B, 1 ), K, 1 ) );    # A pseudo-count of 1 each
+    B = B ./ repmat( sum( B, 2 ), 1, V ) + 1;
 
     # G = \sum_j exp( M_j + 1/2 S_jj )
     G = K * exp( 1/2 );
@@ -42,16 +42,16 @@ function [M,S,B,G] = ctm( C, K, bounds, max_iter )
     iter = 0;
     [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, var_bound, var_max_iter );
     do
+#        EN_ij, EN_jk, VN_ij, VN_jk
+#        input "Continue";
+
         lhood_ = lhood;
         [M, S, B, G] = mlmaximisation( C, K, M, S, B, G, EN_ij, EN_jk, VN_ij, VN_jk, cov_bound, cov_max_iter );
 
-#        M, S, B
+#        M, S, B, G
 #        input "Continue";
 
         [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, var_bound, var_max_iter );
-
-#        EN_ij, EN_jk, VN_ij, VN_jk
-#        input "Continue";
 
         fflush(1);
         iter++;
