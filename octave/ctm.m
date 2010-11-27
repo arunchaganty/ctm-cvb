@@ -15,8 +15,7 @@ function [M, S, B, G] = init_model_params( C, K )
     S = eye( K, K );
 
     # Random Initialise
-    B = rand( K, V ) + 0.01; # (let's not have zeros...)
-    B = B ./ repmat( sum( B, 2 ), 1, V ) + 1;
+    B = 1 + rand( K, V ) + 0.01; # (let's not have zeros...)
 
     # G = \sum_j exp( M_j + 1/2 S_jj )
     G = K * exp( 1/2 );
