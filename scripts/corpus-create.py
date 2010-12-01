@@ -39,7 +39,8 @@ def construct_dictionary( files ):
                 words = filter( lambda c: c in alpha + bridge, line.lower() ).split()
                 for w in words:
                     # Hack for single-letter words like ' or -
-                    if len(w) == 1 and w[0] in bridge: continue 
+                    w = w.strip(bridge)
+                    if len(w) == 0: continue 
                     if options[ "stopwords" ] and w in stops: continue
                     if options[ "lemmatise" ]: w = lemmatiser.lemmatize( w )
                     # increment dictionary counts
