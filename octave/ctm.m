@@ -14,8 +14,8 @@ function [M, S, B, G] = init_model_params( C, K )
     # S_{jj'} = 1 [ Satisifies positive-semidefiniteness ]
     S = eye( K, K );
 
-    # Random Initialise
-    B = 1 + rand( K, V ) + 0.01; # (let's not have zeros...)
+    # Random Initialise - 
+    B = 1 + (V/K) * rand( K, V ) + 0.01; # (let's not have zeros...)
 
     # G = \sum_j exp( M_j + 1/2 S_jj )
     G = K * exp( 1/2 );

@@ -4,11 +4,21 @@
 # Computing likelihood
 #
 
+# Compute document norm
+function lhood = doc_norm( N, K, M, S )
+    # \sum_n nCk( N - n + K - 2, K - 2 ) (n)(n+1)^2/6 \sum( \mS ) +\sum_n nCk( N - n + K - 1, K - 1 ) (n)(n+1)/2 \sum( \mU ) 
+    n = [1:N];
+    Sk = sum( arrayfun( @(x) nchoosek( N - x + K - 2, K - 2) * (x) * (x+1) * (x+1), n ) ) / 6 ;
+    Mk = sum( arrayfun( @(x) nchoosek( N - x + K - 1, K - 1) * (x) * (x+1) , n ) ) / 2;
+
+    lhood = ( sum( sum( S ) ) * Sk + sum( M ) * Mk );
+    lhood
+end;
+
 # Compute the log-likelihood of the model
 function lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi )
     lhood = 0;
 
-    N = sum( sum( C ) );
     [D,V] = size(C);
 
     # \sum_i - (N_i+K) log(G) + EN_ij S_jj' EN_ij' + S_jj VN_ij + EN_ij M_j 
@@ -23,6 +33,12 @@ function lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi )
     lhood += -0.5 * sum( sum( VN_jk, 2 )' .* ( B_j.^(-1) + (B_j.^(-2))./2 )' );
     # + \sum_j 1/2( VN_jk ) ( 1 / ( B_jk + EN_jk ) + 1 / 2( B_jk + EN_jk )^2
     lhood += 0.5 * sum(  sum( VN_jk' .* ( B_jk.^(-1) + (B_jk.^(-2))./2 )' ) );
+
+    # Denominator
+    # \sum_n nCk( N - n + K - 2, K - 2 ) (n)(n+1)^2/6 \sum( \mS ) +\sum_n nCk( N - n + K - 1, K - 1 ) (n)(n+1)/2 \sum( \mU ) 
+    N = sum( C, 2 );
+    norm = - sum( arrayfun( @(n) doc_norm( n, K, M, S ), N ) )
+    lhood += norm;
 
     # - n_ik * E_q( log( \phi_ijk ) )
     for j = [1:K]

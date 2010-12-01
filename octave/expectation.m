@@ -20,7 +20,6 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
     iter = 0;
 
     [D,V] = size( C );
-    C2 = C.^2;
 
     phi = init_phi_unif( C, K, M, S, B, G );
     do
@@ -37,7 +36,7 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
         # Get updated counts
         for j = [1:K];
             EN = phi{ j } .* C;
-            VN = C2 .* (1 - phi{ j }) .* phi{ j };
+            VN = C .* (1 - phi{ j }) .* phi{ j };
 
             # Fill up the counts
             EN_ij( :, j ) = sum( EN, 2 );
@@ -50,7 +49,7 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
         # Update (log_phi)
         for j = [1:K];
             EN = phi{ j } .* C;
-            VN = C2 .* (1 - phi{ j }) .* phi{ j };
+            VN = C .* (1 - phi{ j }) .* phi{ j };
 
             C_ = C;
             C_(C_>0) -= 1;
@@ -107,8 +106,9 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
 #        input "Continue";
 
         lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi );
-        P = perplexity( C, B, K, phi );
-        printf( "E(%d) = %f, %f\n", iter, P, lhood );
+        N = sum(sum(C));
+        P = exp( - lhood / N );
+        printf( "E(%d) = %e, %e\n", iter, P, lhood );
         fflush(1);
 
         iter++;

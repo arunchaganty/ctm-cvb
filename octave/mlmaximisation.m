@@ -13,7 +13,7 @@ function [M, S, B, G] = mlmaximisation( C, K, M, S, B, G, EN_ij, EN_jk, VN_ij, V
 
     # Update B
     # B_jk = EN_jk
-    B = EN_jk +1;
+    B = EN_jk + 1 + 1/K; # Small smoothing
     #B = B ./ repmat( sum( B, 2 ), 1, V ) + 1;
 
     # Update M

@@ -10,12 +10,15 @@ function P = perplexity( C, B, K, phi )
     [D,V] = size(C);
 
     # Convert to p-dist
-    B = B ./ repmat( sum( B, 2 ), 1, V );
+    logB = safe_log(B);
+    logB = B - repmat( logsum( B, 2 ), 1, V );
 
     P = 0;
+    perp = zeros( D*V, K );
     for j = [1:K];
-        P += sum( sum( C .* phi{j} .* ( safe_log(phi{j}) + repmat( log( B(j,:) ), D, 1 ) ) ) );
+        perp(:, j) = (safe_log(phi{j}) + repmat( logB(j,:), D, 1 ) )(:);
     end;
+    P = sum( logsum( perp ) );
     P = exp( - P ./ N );
 end;
 
