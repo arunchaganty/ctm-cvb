@@ -41,8 +41,8 @@ function [M,S,B,G] = ctm( C, K, bounds, max_iter )
     iter = 0;
     [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, var_bound, var_max_iter );
     do
-#        EN_ij, EN_jk, VN_ij, VN_jk
-#        input "Continue";
+        EN_ij, EN_jk, VN_ij, VN_jk
+        input "Continue";
 
         lhood_ = lhood;
         [M, S, B, G] = mlmaximisation( C, K, M, S, B, G, EN_ij, EN_jk, VN_ij, VN_jk, cov_bound, cov_max_iter );
@@ -55,6 +55,5 @@ function [M,S,B,G] = ctm( C, K, bounds, max_iter )
         fflush(1);
         iter++;
     until ( abs(1 - lhood_/lhood) < lhood_bound || iter > lhood_max_iter );
-    M, S, B, G
 end;
 

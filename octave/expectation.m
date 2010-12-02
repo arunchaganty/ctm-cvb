@@ -10,7 +10,7 @@ function phi = init_phi_unif( C, K, M, S, B, G, i )
     phi = cell( K, 1 );
     
     for j = [1:K];
-        phi{ j } =  C ./ K;
+        phi{ j } =  safe_log(C ./ K);
     end;
 end;
 
@@ -21,6 +21,13 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
 
     [D,V] = size( C );
 
+    # Topic ratios (precomputed)
+    lR = M + 0.5 * diag( S )';
+    R = exp( lR - logsum( lR ) );
+    # N
+    N_i = sum( C, 2 );
+
+    # Stored in logspace
     phi = init_phi_unif( C, K, M, S, B, G );
     do
         lhood_ = lhood;
@@ -35,35 +42,62 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
 
         # Get updated counts
         for j = [1:K];
-            EN = phi{ j } .* C;
-            VN = C .* (1 - phi{ j }) .* phi{ j };
+            EN = phi{ j } + safe_log(C);
+            VN = C.*(1 - exp(phi{ j })).*exp(phi{j});
 
             # Fill up the counts
-            EN_ij( :, j ) = sum( EN, 2 );
-            EN_jk( j, : ) = sum( EN, 1 );
+            EN_ij( :, j ) = exp(logsum( EN, 2 ));
+            EN_jk( j, : ) = exp(logsum( EN, 1 ));
 
             VN_ij( :, j ) = sum( VN, 2 );
             VN_jk( j, : ) = sum( VN, 1 );
         end;
 
+        lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi );
+
+#        EN_ij
+#        EN_jk
+#        input "Continue";
+
+        # Adjust counts
+        #  Every element is a KxV matrix
+        EN_ij_ik = cell( 1, D );
+        #  Every element is a KxD matrix
+        # EN_jk_ik = cell( 1, V );
+        for j = [1:K];
+            EN = C .* exp(phi{ j });
+            for i = [1:D];
+                EN_ij_ik{i}( j, : ) = repmat( EN_ij( i, j ), 1, V );
+                EN_ij_ik{i}( j, : ) -= EN( i, : );
+            end;
+        end;
+
         # Update (log_phi)
         for j = [1:K];
-            EN = phi{ j } .* C;
-            VN = C .* (1 - phi{ j }) .* phi{ j };
+            EN = exp(phi{ j }) .* C;
+            VN = C .* (1 - exp(phi{ j })) .* exp(phi{ j });
 
             C_ = C;
             C_(C_>0) -= 1;
 
-            # log(phi_ijk) = \sum_j' S_jj' EN_ij' - S_jj n_ik ( 1 - 2\phi_ijk ) + M_j
-            phi_ = 0.5 .* ( repmat( EN_ij * S( :, j ), 1, V ) + S( j, j ) .* ( C - 2 .* EN ) ) + repmat( M(j), D, V );
+            # log(phi_ijk) = \M_j + 0.5 * S_jj - 0.5*(exp(S_jj) - 1)
+            phi_ = repmat( lR(j) , D, V ); 
 #            phi_( 1,1:10 )
-            #              - log( \sum_k' B_jk' + EN_jk' - n_ik \phi_ijk + (n_ik - 1)/2 ) 
-            #              + log( B_jk + EN_jk - n_ik \phi_ijk _ (n_ik - 1)/2 )
-            B_j_tmp = repmat( sum( B(j,:) + EN_jk(j,:) ), D, V ) - EN + (C_)/2;
-            B_jk_tmp = repmat( B(j,:) + EN_jk(j,:), D, 1 ) - EN + (C_)/2;
+            for i = [1:D];
+                #                + 0.5 * \sum_j' (exp(S_jj') -  1)( EN_ij'_ik - N_i R_j' )
+                err = EN_ij_ik{i} - repmat( N_i(i) * R', 1, V);
+                err(j,:) -= 1;
+                proj_err = 0.5 * (exp(S(j,:)) - 1) * err;
+                phi_(i,:) += proj_err;
+            end;
+#            phi_( 1,1:10 )
+            #              - log( \sum_k' B_jk' + EN_jk' - n_ik phi_ijk + (n_ik - 1)/2 ) 
+            B_j_tmp = repmat( sum( B(j,:) + EN_jk(j,:) ), D, V ) - EN;# + (C_)/2;
+            #              + log( B_jk + EN_jk + (n_ik - 1)/2 )
+            B_jk_tmp = repmat( B(j,:) + EN_jk(j,:), D, 1 ) - EN;# + (C_)/2;
             assert( B_j_tmp > 0 );
             assert( B_jk_tmp > 0 );
-            phi_ += -log( B_j_tmp ) + log( B_jk_tmp );
+            phi_ += -safe_log( B_j_tmp ) + safe_log( B_jk_tmp );
 #            phi_( 1,1:10 )
             #              + (\sum_k' VN_jk' - n_ik^2 (1-\phi_ijk) \phi_ijk )/2(\sum_k' B_jk' + EN_jk' - n_ik\phi_ijk + n_ik - 1 /2 )^2 
             V_j_tmp = repmat( sum( VN_jk(j,:) ), D, V ) - VN;
@@ -74,7 +108,6 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
             # Update
             phi{j} = (C>0) .* phi_;
         end;
-#        input "Continue";
 
         # Flatten phi
         flat_phi = zeros( K, D*V );
@@ -89,10 +122,11 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
 #        phi{1}(1:12, 1:12)
 #        sum_phi(1:12, 1:12)
 #        ((C>0).*phinorm)(1:12, 1:12)
+#        ((C>0).*(phi{1} - phinorm))(1:12, 1:12)
 #        input "Continue";
 
         # Subtract the norm from all the topics, and exponentiate
-        phi = cellfun( @(phi_j) (C>0) .* exp( phi_j - phinorm ), phi, "UniformOutput", false );
+        phi = cellfun( @(phi_j) (C>0) .* (phi_j - phinorm), phi, "UniformOutput", false );
 #        phi{1}(phi{1} > 0.3)
 #        phi{1}(1:10,1:10)
 #        input "Continue";
@@ -102,13 +136,14 @@ function [lhood, EN_ij, EN_jk, VN_ij, VN_jk] = expectation( C, K, M, S, B, G, bo
             phinorm += phi{j};
 #            phi{j}(10:12,10:12)
         end;
+#        phinorm
         assert( phinorm( C > 0 ) - 1 < 0.001 );
 #        input "Continue";
 
-        lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi );
-        N = sum(sum(C));
-        P = exp( - lhood / N );
-        printf( "E(%d) = %e, %e\n", iter, P, lhood );
+        #lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi );
+        #N = sum(sum(C));
+        #P = exp( - lhood / N );
+        printf( "E(%d) = %e\n", iter, lhood );
         fflush(1);
 
         iter++;
