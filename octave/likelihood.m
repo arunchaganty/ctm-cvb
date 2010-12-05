@@ -1,48 +1,56 @@
 #
-# Correlated Topic Model
+# LG-LDA
 # Using CVB
 # Computing likelihood
 #
 
-# Compute document norm
-function lhood = doc_norm( N, K, M, S )
-    # \sum_n nCk( N - n + K - 2, K - 2 ) (n)(n+1)^2/6 \sum( \mS ) +\sum_n nCk( N - n + K - 1, K - 1 ) (n)(n+1)/2 \sum( \mU ) 
-    n = [1:N];
-    Sk = sum( arrayfun( @(x) nchoosek( N - x + K - 2, K - 2) * (x) * (x+1) * (x+1), n ) ) / 6 ;
-    Mk = sum( arrayfun( @(x) nchoosek( N - x + K - 1, K - 1) * (x) * (x+1) , n ) ) / 2;
+# Compute the log-likelihood of the model per document
+function lhood = doc_likelihood( N_k, K, M, S, B, lambda, nu, phi, EN_j, VN_j, EN_jk, VN_jk )
+    # Mean \alpha parameters
+    A = exp( lambda + 0.5*nu );
+    # Variance \alpha parameters 2l + 2s - 2l + s
+    VA = exp( 2*lambda + nu ) * ( exp( nu ) - 1 );
 
-    lhood = ( sum( sum( S ) ) * Sk + sum( M ) * Mk );
-    lhood
+    lhood = 0;
+
+    Si = inv(S);
+
+    # - 0.5 log(|2 \pi S|) - 0.5 \sum_j nu_j inv(S)_jj - 0.5 \sum_j,j' (l-M) inv(S)_jj (l - M) 
+    lhood += - 0.5 * log( det( 2 * pi * S ) ) - 0.5 * nu * diag(Si) - 0.5 * (lambda - M) * Si * (lambda - M);
+
+    # From alpha
+    # logGamma( \sum A) - logGamma( \sum A + EN ) + \sum logGamma( A + EN ) - logGamma( A )  
+    lhood += lgamma( sum( A ) ) - lgamma( sum( A + EN_j ) ) + sum( lgamma( A + EN_j ) - lgamma( A ) );
+    # 2nd-order Corrections
+    lhood += - 0.5 * sum( VN_j ) * psi_n(1, sum(  A + EN_j ) ) + 0.5 * sum( VN_j .* psi_n(1, A + EN_j ) );
+
+    # Bound corrections : TODO
+    lhood += - 0.5 * ( sum(VA) * ( 1 / (2 * sum(A)^2) + 1 / ( sum( A + EN_j ) ) ) ) - 0.5 * sum( VA .* ( 1 ./ (2 * ( A + EN_j ) .^2 ) + 1 ./ A ) );
+    # 2nd-order
+    lhood += - 0.5 * ( sum(VA) * ( sum(VN_j) ./ ( sum( A + EN_j ).^3 ) ) ) - 0.5 * sum( VA .* VN_j .* 3 ./ (2 * ( A + EN_j ) .^4 ) );
+     
+    # From Beta
+    # \sum_j logGamma( \sum B) - logGamma( \sum B + EN ) + \sum logGamma( B + EN ) - logGamma( B )  
+    lhood += sum( lgamma( sum( B, 2 ) ) - lgamma( sum( B + EN_jk, 2 ) ) + sum( lgamma( B + EN_j ) - lgamma( B ), 2 ), 1 );
+    # 2nd-order Corrections
+    lhood += - 0.5 * sum( sum( VN_jk, 2 ) .* psi_n(1, sum( B + EN_jk, 2 ) ), 1 ) + 0.5 * sum( sum( VN_jk .* lgamma(1, B + EN_jk ) ) );
+
+    # From lambda, nu
+    lhood += 0.5 * sum( log( 2 * pi * nu ) ) + 0.5 * K;
+
+    # From phi
+    lhood += -sum( N_k .* sum ( phi .* log( phi ), 1 ), 2 );
 end;
 
 # Compute the log-likelihood of the model
-function lhood = likelihood( C, K, M, S, B, G, EN_ij, VN_ij, EN_jk, VN_jk, phi )
-    lhood = 0;
-
+function lhood = likelihood( C, K, M, S, B, EN_ij, VN_ij, EN_jk, VN_jk, lambda, nu, phi )
     [D,V] = size(C);
+    # TODO: Worry about phi 
 
-    # \sum_i - (N_i+K) log(G) + EN_ij S_jj' EN_ij' + S_jj VN_ij + EN_ij M_j 
-    sum(sum(0.5 .* EN_ij' .* (S * EN_ij')) + 0.5 .* (VN_ij * diag(S))') + sum( EN_ij * M' );
-    lhood += sum(sum(0.5 .* EN_ij' .* (S * EN_ij')) + 0.5 .* (VN_ij * diag(S))') + sum( EN_ij * M' );
-    # \sum_j 1/2( log( \sum_k B_jk + EN_jk ) - log( \sum_k B_jk ) - \sum_j \sum_k 1/2( log( B_jk + EN_jk ) - log( B_jk )  
-    B_ = sum( B, 2 );
-    B_jk = B + EN_jk;
-    B_j = sum( B_jk, 2 );
-    lhood += 0.5 * sum( log( B_j ) - log( B_ ) - sum( log( B_jk ) - log( B ), 2 ) );
-    # - \sum_j 1/2( \sum_k VN_jk ) ( 1 / ( sum_k B_jk + EN_jk ) + 1 / 2( sum_k  B_jk + EN_jk )^2
-    lhood += -0.5 * sum( sum( VN_jk, 2 )' .* ( B_j.^(-1) + (B_j.^(-2))./2 )' );
-    # + \sum_j 1/2( VN_jk ) ( 1 / ( B_jk + EN_jk ) + 1 / 2( B_jk + EN_jk )^2
-    lhood += 0.5 * sum(  sum( VN_jk' .* ( B_jk.^(-1) + (B_jk.^(-2))./2 )' ) );
-
-    # Denominator
-    # \sum_n nCk( N - n + K - 2, K - 2 ) (n)(n+1)^2/6 \sum( \mS ) +\sum_n nCk( N - n + K - 1, K - 1 ) (n)(n+1)/2 \sum( \mU ) 
-    N = sum( C, 2 );
-    norm = - sum( arrayfun( @(n) doc_norm( n, K, M, S ), N ) )
-    lhood += norm;
-
-    # - n_ik * E_q( log( \phi_ijk ) )
-    for j = [1:K]
-        lhood += -sum( sum( C .* phi{j} .* safe_log(phi{j}) ) );
+    # Compute likelihood scores for each document
+    lhood = 0;
+    for i = [1:D];
+        lhood += doc_likelihood( C(i,:), K, M, S, B, EN_ij(i,:), VN_ij(i,:), EN_jk, VN_jk, lambda, nu, phi{i} );
     end;
 end;
 
