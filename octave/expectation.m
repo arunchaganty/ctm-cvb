@@ -10,7 +10,7 @@ source "nu.m"
 
 function [lambda, nu] = init_var_unif( K )
     lambda = 10.0 * ones(1, K); # Used in Blei's code
-    nu = 1;                     # Making it up here
+    nu = 1 * ones(1, K);        # Making it up here
 end;
 
 function [EN_jk, VN_jk] = init_N_jk( C, K )
@@ -28,13 +28,13 @@ function [phi, lambda, nu, lhood] = opt_doc(N_k, K, M, S, B, EN_jk, VN_jk, bound
     lhood_ = 1;
     iter = 0;
 
-    [phi, EN_j, VN_j, lhood] = opt_phi_doc( N_k, K, M, S, B, lambda, nu, EN_jk, VN_jk, bound, max_iter )
+    [phi, EN_j, VN_j, lhood] = opt_phi_doc(N_k, K, M, S, B, EN_jk, VN_jk, lambda, nu, bound, max_iter );
     do 
         lhood_ = lhood;
 
-        [lambda, lhood] = opt_lambda_doc( N_k, K, M, S, B, lambda, nu, EN_j, VN_j, EN_jk, VN_jk, bound, max_iter )
-        [nu, lhood] = opt_nu_doc( N_k, K, M, S, B, lambda, nu, EN_j, VN_j, EN_jk, VN_jk, bound, max_iter )
-        [phi, EN_j, VN_j, lhood] = opt_phi_doc( N_k, K, M, S, B, lambda, nu, EN_jk, VN_jk, bound, max_iter )
+        lambda = opt_lambda_doc( N_k, K, M, S, B, EN_jk, VN_jk, lambda, nu, EN_j, VN_j, bound, max_iter );
+        nu  = opt_nu_doc( N_k, K, M, S, B, EN_jk, VN_jk, lambda, nu, EN_j, VN_j, bound, max_iter );
+        [phi, EN_j, VN_j, lhood] = opt_phi_doc(N_k, K, M, S, B, EN_jk, VN_jk, lambda, nu, bound, max_iter );
 
         printf( "E_doc(%d) = %e\n", iter, lhood );
         fflush(1);
