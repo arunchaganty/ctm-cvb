@@ -25,14 +25,7 @@ bool file_exists( string filename )
 {
     struct stat st;
 
-    if ( stat( filename.c_str(), &st ) == 0 && S_ISREG( st.st_mode ) ) 
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return ( stat( fname.c_str(), &st ) == 0 && S_ISREG( st.st_mode ) );
 }
 
 bool file_equal( string filename1, string filename2 )

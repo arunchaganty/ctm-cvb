@@ -58,7 +58,7 @@ bin-dist: all
 	tar -czf $(PRJNAME)-$(VERSION).tar.gz $(PRJNAME)-$(VERSION)/
 	rm -r $(PRJNAME)-$(VERSION)
 
-.PHONY: clean doc test
+.PHONY: clean clean-tests doc test
 
 doc: 
 	doxygen

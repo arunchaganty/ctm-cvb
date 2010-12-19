@@ -28,6 +28,7 @@ end;
 function [M,S,B] = ctm( C, K, bounds, max_iter )
     # Initialise model parameters \mu, \Sigma, \Beta, \gamma
     [M, S, B] = init_model_params( C, K );
+    Si = inv( S );
 
     lhood_bound = bounds(1);
     var_bound = bounds(2);
@@ -37,17 +38,18 @@ function [M,S,B] = ctm( C, K, bounds, max_iter )
 
     lhood = 0;
     iter = 0;
-    [lhood, Lambda, Nu, EN_jk, VN_jk] = expectation( C, K, M, S, B, var_bound, var_max_iter );
+    [lhood, Lambda, Nu, EN_jk, VN_jk] = expectation( C, K, M, Si, B, var_bound, var_max_iter );
     do
 #        Lambda, Nu, EN_jk, VN_jk
 #        input "Continue";
 
         lhood_ = lhood;
-        [M, S, B] = mlmaximisation( C, K, M, S, B, Lambda, Nu, EN_jk, VN_jk );
+        [M, S, B] = mlmaximisation( C, K, M, Si, B, Lambda, Nu, EN_jk, VN_jk );
+        Si = inv( S );
 #        M, S, B
 #        input "Continue";
 
-        [lhood, Lambda, Nu, EN_jk, VN_jk] = expectation( C, K, M, S, B, var_bound, var_max_iter );
+        [lhood, Lambda, Nu, EN_jk, VN_jk] = expectation( C, K, M, Si, B, var_bound, var_max_iter );
 
         fflush(1);
         iter++;

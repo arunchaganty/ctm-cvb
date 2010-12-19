@@ -5,13 +5,13 @@
 #
 
 # Compute "better" model parameters
-function [M, S, B] = mlmaximisation( C, K, M, S, B, Lambda, Nu, EN_jk, VN_jk )
-    [D,V] = size(D);
+function [M, S, B] = mlmaximisation( C, K, M, Si, B, Lambda, Nu, EN_jk, VN_jk )
+    [D,V] = size(C);
 
     M = mean( Lambda, 1 );
 
     for i = [1:D];
-        S = diag(Nu(i,:)) + (Lambda(i,:) - M)'(Lambda(i,:) - M);
+        S = diag(Nu(i,:)) + (Lambda(i,:) - M)' * (Lambda(i,:) - M);
     end;
     S ./ D;
 

@@ -5,7 +5,7 @@
 #
 
 # Compute the log-likelihood of the model per document
-function lhood = doc_likelihood( N_k, K, M, S, B, lambda, nu, phi, EN_j, VN_j, EN_jk, VN_jk )
+function lhood = doc_likelihood( N_k, K, M, Si, B, lambda, nu, phi, EN_j, VN_j, EN_jk, VN_jk )
     V = length( N_k );
     # Mean \alpha parameters
     A = exp( lambda + 0.5*nu )';
@@ -14,10 +14,10 @@ function lhood = doc_likelihood( N_k, K, M, S, B, lambda, nu, phi, EN_j, VN_j, E
 
     lhood = 0;
 
-    Si = inv(S);
+    Si;
 
     # - 0.5 log(|2 \pi S|) - 0.5 \sum_j nu_j inv(S)_jj - 0.5 \sum_j,j' (l-M) inv(S)_jj (l - M) 
-    lhood += - 0.5 * log( det( 2 * pi * S ) ) - 0.5 * nu * diag(Si) - 0.5 * (lambda - M) * Si * (lambda - M)';
+    lhood += - 0.5 * log( det( Si ./ (2*pi) ) ) - 0.5 * nu * diag(Si) - 0.5 * (lambda - M) * Si * (lambda - M)';
 
     # From alpha
     # logGamma( \sum A) - logGamma( \sum A + EN ) + \sum logGamma( A + EN ) - logGamma( A )  
@@ -26,9 +26,9 @@ function lhood = doc_likelihood( N_k, K, M, S, B, lambda, nu, phi, EN_j, VN_j, E
     lhood += - 0.5 * sum( VN_j ) * psi_n(1, sum(  A + EN_j ) ) + 0.5 * sum( VN_j .* psi_n(1, A + EN_j ) );
 
     # Bound corrections : TODO
-    lhood += - 0.5 * ( sum(VA) * ( 1 / (2 * sum(A)^2) + 1 / sum( A + EN_j ) ) ) - 0.5 * sum( VA .* ( 1 ./ (2 * ( A + EN_j ).^2 ) + 1 ./ A ) );
-    # 2nd-order
-    lhood += - 0.5 * ( sum(VA) * ( sum(VN_j) ./ ( sum( A + EN_j ).^3 ) ) ) - 0.5 * sum( VA .* VN_j .* 3 ./ (2 * ( A + EN_j ) .^4 ) );
+#    lhood += - 0.5 * ( sum(VA) * ( 1 / (2 * sum(A)^2) + 1 / sum( A + EN_j ) ) ) - 0.5 * sum( VA .* ( 1 ./ (2 * ( A + EN_j ).^2 ) + 1 ./ A ) );
+#    # 2nd-order
+#    lhood += - 0.5 * ( sum(VA) * ( sum(VN_j) ./ ( sum( A + EN_j ).^3 ) ) ) - 0.5 * sum( VA .* VN_j .* 3 ./ (2 * ( A + EN_j ) .^4 ) );
      
     # From Beta
     # \sum_j logGamma( \sum B) - logGamma( \sum B + EN ) + \sum logGamma( B + EN ) - logGamma( B )  
@@ -44,14 +44,14 @@ function lhood = doc_likelihood( N_k, K, M, S, B, lambda, nu, phi, EN_j, VN_j, E
 end;
 
 # Compute the log-likelihood of the model
-function lhood = likelihood( C, K, M, S, B, EN_ij, VN_ij, EN_jk, VN_jk, Lambda, Nu, phi )
+function lhood = likelihood( C, K, M, Si, B, EN_ij, VN_ij, EN_jk, VN_jk, Lambda, Nu, phi )
     [D,V] = size(C);
     # TODO: Worry about phi 
 
     # Compute likelihood scores for each document
     lhood = 0;
     for i = [1:D];
-        lhood += doc_likelihood( C(i,:), K, M, S, B, EN_ij(i,:), VN_ij(i,:), EN_jk, VN_jk, Lambda(i), Nu(i), phi{i} );
+        lhood += doc_likelihood( C(i,:), K, M, Si, B, EN_ij(i,:), VN_ij(i,:), EN_jk, VN_jk, Lambda(i), Nu(i), phi{i} );
     end;
 end;
 

@@ -9,11 +9,11 @@ function [EN_ij, VN_ij] = init_N_ij( N_k, K )
     VN_ij = repmat( N_k, K, 1 ) .* ((1/K) * (1 - 1/K));
 end;
 
-function [phi, EN_j, VN_j, lhood] = opt_phi_doc(N_k, K, M, S, B, EN_jk, VN_jk, lambda, nu, bound, max_iter )
+function [phi, EN_j, VN_j, lhood] = opt_phi_doc(N_k, K, M, Si, B, EN_jk, VN_jk, lambda, nu, bound, max_iter )
     V = length( N_k );
     # Adjusted for use
     N_k = repmat( N_k, K, 1 );
-    A = exp( lambda + 0.5*nu )';
+    A = exp( lambda + 0.5*nu )' + 1;
     A = repmat( A, 1, V );
 
     # Initialise
@@ -24,6 +24,7 @@ function [phi, EN_j, VN_j, lhood] = opt_phi_doc(N_k, K, M, S, B, EN_jk, VN_jk, l
     lhood_ = 1;
     iter = 0;
     do 
+        lhood_ = lhood;
         phi_E = N_k .* phi;
         phi_V = N_k .* phi .* ( 1 - phi );
         EN_j = sum( phi_E, 2 );
@@ -36,19 +37,19 @@ function [phi, EN_j, VN_j, lhood] = opt_phi_doc(N_k, K, M, S, B, EN_jk, VN_jk, l
 
         X = repmat( sum( A + EN_j_ ), K, 1 ) - phi_E + (N_k - 1)/2;
         Y = A + EN_j_ - phi_E + (N_k - 1)/2;
-        log_phi += -log( X ) + ( repmat( sum( VN_j_ ), K, 1 ) - phi_V ) ./ ( 2 * X.^2 );
-        log_phi += log( Y ) - ( VN_j_ - phi_V ) ./ ( 2 * Y.^2 );
+        log_phi += -safe_log( X ) + ( repmat( sum( VN_j_ ), K, 1 ) - phi_V ) ./ ( 2 * X.^2 );
+        log_phi += safe_log( Y ) - ( VN_j_ - phi_V ) ./ ( 2 * Y.^2 );
 
         X = repmat( sum( B + EN_jk ), K, 1 ) - phi_E + (N_k - 1)/2;
         Y = B + EN_jk - phi_E + (N_k - 1)/2;
-        log_phi += -log( X ) + ( repmat( sum( VN_jk ), K, 1 ) - phi_V ) ./ ( 2 * X.^2 );
-        log_phi += log( Y ) - ( VN_jk - phi_V ) ./ ( 2 * Y.^2 );
+        log_phi += -safe_log( X ) + ( repmat( sum( VN_jk ), K, 1 ) - phi_V ) ./ ( 2 * X.^2 );
+        log_phi += safe_log( Y ) - ( VN_jk - phi_V ) ./ ( 2 * Y.^2 );
 
         # Normalise
         log_norm = repmat( logsum( log_phi, 1 ), K, 1 );
         phi  = exp( log_phi - log_norm );
         
-        lhood = doc_likelihood( N_k, K, M, S, B, lambda, nu, phi, EN_j, VN_j, EN_jk, VN_jk );
+        lhood = doc_likelihood( N_k, K, M, Si, B, lambda, nu, phi, EN_j, VN_j, EN_jk, VN_jk );
 
         iter++;
     until( abs(1 - lhood_/lhood) < bound || iter > max_iter );
